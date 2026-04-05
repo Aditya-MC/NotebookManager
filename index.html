@@ -5,12 +5,110 @@
 <title>Notebook Stock Manager</title>
 
 <style>
-body{font-family:Arial;padding:20px;background:#f5f5f5}
-.box{background:white;padding:20px;border-radius:10px}
-input,select,button{padding:8px;margin:5px}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-th,td{border:1px solid #ddd;padding:8px;text-align:center}
-th{background:#333;color:white}
+
+*{
+box-sizing:border-box;
+}
+
+body{
+font-family:Arial;
+padding:10px;
+background:#f5f5f5;
+margin:0;
+}
+
+.box{
+background:white;
+padding:15px;
+border-radius:12px;
+max-width:600px;
+margin:auto;
+box-shadow:0 3px 8px rgba(0,0,0,0.08);
+}
+
+h2{
+text-align:center;
+}
+
+input,select,button{
+width:100%;
+padding:12px;
+margin-top:8px;
+margin-bottom:8px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:16px;
+}
+
+button{
+background:#333;
+color:white;
+border:none;
+font-weight:bold;
+}
+
+button:active{
+transform:scale(0.98);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+font-size:14px;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:8px;
+text-align:center;
+}
+
+th{
+background:#333;
+color:white;
+}
+
+.section-title{
+margin-top:25px;
+font-size:18px;
+font-weight:bold;
+}
+
+/* MOBILE TABLE SCROLL FIX */
+
+.table-wrapper{
+overflow-x:auto;
+}
+
+/* ACTION BUTTON STYLE */
+
+.action-btn{
+padding:6px 10px;
+font-size:13px;
+margin:2px;
+border-radius:6px;
+}
+
+/* RESPONSIVE LAYOUT */
+
+@media(max-width:480px){
+
+h2{
+font-size:20px;
+}
+
+th,td{
+font-size:12px;
+padding:6px;
+}
+
+button{
+font-size:15px;
+}
+
+}
+
 </style>
 
 </head>
