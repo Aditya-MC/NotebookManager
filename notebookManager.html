@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Notebook Stock Manager</title>
+
+<style>
+body{font-family:Arial;padding:20px;background:#f5f5f5}
+.box{background:white;padding:20px;border-radius:10px}
+input,select,button{padding:8px;margin:5px}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{border:1px solid #ddd;padding:8px;text-align:center}
+th{background:#333;color:white}
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>📚 Notebook Stock Manager</h2>
+
+<h3>Add Category</h3>
+
+<input id="cat">
+<input id="prev" type="number" placeholder="Prev stock">
+<input id="curr" type="number" placeholder="Curr stock">
+
+<button id="saveBtn">Save</button>
+
+
+<h3>Sell Notebooks</h3>
+
+<select id="sellCat"></select>
+
+<input id="soldQty" type="number">
+
+<button id="sellBtn">Sell</button>
+
+
+<h3>Stock Overview</h3>
+
+<table>
+
+<thead>
+<tr>
+<th>Category</th>
+<th>Prev</th>
+<th>Curr</th>
+<th>Total</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+
+</table>
+
+
+<h3>📜 Distribution History</h3>
+
+<table>
+
+<thead>
+<tr>
+<th>Date</th>
+<th>Category</th>
+<th>Qty</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="historyTable"></tbody>
+
+</table>
+
+</div>
+
+
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+doc,
+setDoc,
+deleteDoc,
+updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+apiKey:"AIzaSyDcQ5RzqmhlpRxl93g7aQg_zJxc6B3uiQQ",
+
+authDomain:"notebookmanager-18e85.firebaseapp.com",
+
+projectId:"notebookmanager-18e85",
+
+storageBucket:"notebookmanager-18e85.firebasestorage.app",
+
+messagingSenderId:"305878840961",
+
+appId:"1:305878840961:web:7a728ec61a20861d24bf80"
+
+};
+
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+let data={}
+let history=[]
+
+
+async function load(){
+
+const catSnap=await getDocs(collection(db,"categories"))
+
+catSnap.forEach(docSnap=>{
+
+data[docSnap.id]=docSnap.data()
+
+})
+
+
+const histSnap=await getDocs(collection(db,"history"))
+
+histSnap.forEach(docSnap=>{
+
+history.push({id:docSnap.id,...docSnap.data()})
+
+})
+
+
+render()
+
+renderHistory()
+
+}
+
+
+
+async function saveCategory(){
+
+const cat=catInput.value
+
+const prev=parseInt(prevInput.value)||0
+
+const curr=parseInt(currInput.value)||0
+
+
+if(!cat) return alert("enter category")
+
+
+data[cat]={prev,curr}
+
+
+await setDoc(doc(db,"categories",cat),data[cat])
+
+
+render()
+
+}
+
+
+
+async function sell(){
+
+const cat=sellSelect.value
+
+let qty=parseInt(soldInput.value)
+
+
+if(!qty) return
+
+
+let item=data[cat]
+
+
+if(item.prev>=qty){
+
+item.prev-=qty
+
+}else{
+
+qty-=item.prev
+
+item.prev=0
+
+item.curr-=qty
+
+}
+
+
+await setDoc(doc(db,"categories",cat),item)
+
+
+let ref=await addDoc(
+
+collection(db,"history"),
+
+{
+
+category:cat,
+
+quantity:qty,
+
+date:new Date().toLocaleString()
+
+}
+
+)
+
+
+history.unshift({
+
+id:ref.id,
+
+category:cat,
+
+quantity:qty,
+
+date:new Date().toLocaleString()
+
+})
+
+
+render()
+
+renderHistory()
+
+}
+
+
+
+async function deleteHistory(id){
+
+let entry=history.find(x=>x.id===id)
+
+
+data[entry.category].curr+=entry.quantity
+
+
+await setDoc(
+
+doc(db,"categories",entry.category),
+
+data[entry.category]
+
+)
+
+
+await deleteDoc(doc(db,"history",id))
+
+
+history=history.filter(x=>x.id!==id)
+
+
+render()
+
+renderHistory()
+
+}
+
+
+
+async function editHistory(id){
+
+let entry=history.find(x=>x.id===id)
+
+
+let newQty=parseInt(prompt("new qty",entry.quantity))
+
+
+if(!newQty) return
+
+
+let diff=newQty-entry.quantity
+
+
+data[entry.category].curr-=diff
+
+
+await setDoc(
+
+doc(db,"categories",entry.category),
+
+data[entry.category]
+
+)
+
+
+await updateDoc(
+
+doc(db,"history",id),
+
+{quantity:newQty}
+
+)
+
+
+entry.quantity=newQty
+
+
+render()
+
+renderHistory()
+
+}
+
+
+
+async function deleteCategory(cat){
+
+if(!confirm("delete category?")) return
+
+
+await deleteDoc(doc(db,"categories",cat))
+
+
+data[cat]=undefined
+
+
+render()
+
+}
+
+
+
+async function editCategory(cat){
+
+let newName=prompt("rename",cat)
+
+
+if(!newName) return
+
+
+data[newName]=data[cat]
+
+
+await setDoc(
+
+doc(db,"categories",newName),
+
+data[newName]
+
+)
+
+
+await deleteDoc(doc(db,"categories",cat))
+
+
+for(let h of history){
+
+if(h.category===cat){
+
+h.category=newName
+
+await updateDoc(doc(db,"history",h.id),{category:newName})
+
+}
+
+}
+
+
+delete data[cat]
+
+
+render()
+
+renderHistory()
+
+}
+
+
+
+function render(){
+
+table.innerHTML=""
+
+sellSelect.innerHTML=""
+
+
+for(let cat in data){
+
+if(!data[cat]) continue
+
+
+let d=data[cat]
+
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${cat}</td>
+
+<td>${d.prev}</td>
+
+<td>${d.curr}</td>
+
+<td>${d.prev+d.curr}</td>
+
+<td>
+
+<button onclick="editCategory('${cat}')">edit</button>
+
+<button onclick="deleteCategory('${cat}')">delete</button>
+
+</td>
+
+</tr>`
+
+
+sellSelect.innerHTML+=`<option>${cat}</option>`
+
+}
+
+}
+
+
+
+function renderHistory(){
+
+historyTable.innerHTML=""
+
+
+history.forEach(h=>{
+
+historyTable.innerHTML+=`
+
+<tr>
+
+<td>${h.date}</td>
+
+<td>${h.category}</td>
+
+<td>${h.quantity}</td>
+
+<td>
+
+<button onclick="editHistory('${h.id}')">edit</button>
+
+<button onclick="deleteHistory('${h.id}')">delete</button>
+
+</td>
+
+</tr>`
+
+})
+
+}
+
+
+
+const catInput=document.getElementById("cat")
+
+const prevInput=document.getElementById("prev")
+
+const currInput=document.getElementById("curr")
+
+const sellSelect=document.getElementById("sellCat")
+
+const soldInput=document.getElementById("soldQty")
+
+
+document.getElementById("saveBtn")
+
+.addEventListener("click",saveCategory)
+
+
+document.getElementById("sellBtn")
+
+.addEventListener("click",sell)
+
+
+window.editCategory=editCategory
+
+window.deleteCategory=deleteCategory
+
+window.editHistory=editHistory
+
+window.deleteHistory=deleteHistory
+
+
+load()
+
+</script>
+
+</body>
+
+</html>
