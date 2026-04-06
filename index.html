@@ -1,241 +1,612 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Notebook Stock Manager</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans);background:var(--color-background-tertiary);color:var(--color-text-primary)}
-.page{padding:12px;max-width:480px;margin:auto}
-.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;margin-bottom:12px}
-.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
-.field-label{font-size:13px;color:var(--color-text-secondary);margin-bottom:4px}
-.field{margin-bottom:12px}
-input,select{width:100%;padding:11px 12px;font-size:15px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);outline:none}
-input:focus,select:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(0,0,0,.06)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{width:100%;padding:12px;font-size:15px;font-weight:500;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;margin-top:4px}
-.btn:active{background:var(--color-background-secondary)}
-.btn-primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
-.btn-primary:active{opacity:.85}
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
-table{width:100%;border-collapse:collapse;font-size:13px;min-width:340px}
-th{background:var(--color-background-secondary);color:var(--color-text-secondary);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;text-align:left;border-bottom:0.5px solid var(--color-border-tertiary)}
-td{padding:10px 10px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle;color:var(--color-text-primary)}
-.td-num{text-align:right;font-variant-numeric:tabular-nums}
-.tag{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:500}
-.tag-green{background:#EAF3DE;color:#3B6D11}
-.action-wrap{display:flex;gap:6px}
-.act-btn{flex:1;padding:6px 0;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);cursor:pointer;text-align:center}
-.act-btn:active{background:var(--color-background-secondary)}
-.act-btn.del{border-color:#F7C1C1;color:#A32D2D}
-.empty{font-size:13px;color:var(--color-text-tertiary);text-align:center;padding:20px 0}
-.header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
-.header-icon{font-size:20px}
-.header-title{font-size:18px;font-weight:500}
-.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px}
-.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 8px;text-align:center}
-.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:2px}
-.stat-val{font-size:18px;font-weight:500}
+
+*{
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+margin:0;
+background:#f4f6fa;
+padding:15px;
+}
+
+.box{
+width:95%;
+max-width:700px;
+margin:auto;
+margin-top:20px;
+background:white;
+padding:22px;
+border-radius:14px;
+box-shadow:0 4px 10px rgba(0,0,0,.05);
+}
+
+h2{
+text-align:center;
+font-weight:700;
+margin-bottom:20px;
+}
+
+/* section titles */
+
+h3{
+margin-top:25px;
+margin-bottom:10px;
+font-weight:600;
+}
+
+/* inputs */
+
+input,select{
+width:100%;
+padding:11px;
+margin-bottom:12px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:15px;
+}
+
+/* buttons */
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#333;
+color:white;
+font-weight:600;
+font-size:14px;
+margin-bottom:15px;
+cursor:pointer;
+}
+
+button:hover{
+background:#111;
+}
+
+/* tables */
+
+.table-wrapper{
+overflow-x:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+margin-top:5px;
+}
+
+th{
+background:#333;
+color:white;
+padding:10px;
+}
+
+td{
+padding:9px;
+border-bottom:1px solid #eee;
+text-align:center;
+}
+
+/* action buttons inline */
+
+td button{
+width:auto;
+padding:6px 10px;
+margin:2px;
+font-size:12px;
+}
+
+/* mobile tweaks */
+
+@media(max-width:600px){
+
+.box{
+padding:16px;
+}
+
+table{
+font-size:13px;
+}
+
+button{
+font-size:14px;
+}
+
+}
+
 </style>
+</head>
 
-<div class="page">
-  <div class="header">
-    <span class="header-icon">📚</span>
-    <span class="header-title">Notebook Stock Manager</span>
-  </div>
+<body>
 
-  <div class="card">
-    <div class="section-title">Add / Update Category</div>
-    <div class="field">
-      <div class="field-label">Category name</div>
-      <input id="cat" type="text" placeholder="e.g. A4 Ruled">
-    </div>
-    <div class="row2">
-      <div class="field">
-        <div class="field-label">Previous stock</div>
-        <input id="prev" type="number" inputmode="numeric" placeholder="0">
-      </div>
-      <div class="field">
-        <div class="field-label">Current stock</div>
-        <input id="curr" type="number" inputmode="numeric" placeholder="0">
-      </div>
-    </div>
-    <button class="btn btn-primary" id="saveBtn">Save Category</button>
-  </div>
+<div class="box">
 
-  <div class="card">
-    <div class="section-title">Sell Notebooks</div>
-    <div class="field">
-      <div class="field-label">Category</div>
-      <select id="sellCat"></select>
-    </div>
-    <div class="field">
-      <div class="field-label">Quantity sold</div>
-      <input id="soldQty" type="number" inputmode="numeric" placeholder="0">
-    </div>
-    <button class="btn btn-primary" id="sellBtn">Record Sale</button>
-  </div>
+<h2>📚 Notebook Stock Manager</h2>
 
-  <div class="card">
-    <div class="section-title">Stock Overview</div>
-    <div id="statCards" style="display:none" class="stat-row">
-      <div class="stat"><div class="stat-label">Categories</div><div class="stat-val" id="statCats">0</div></div>
-      <div class="stat"><div class="stat-label">Prev total</div><div class="stat-val" id="statPrev">0</div></div>
-      <div class="stat"><div class="stat-label">Curr total</div><div class="stat-val" id="statCurr">0</div></div>
-    </div>
-    <div class="table-wrap" style="margin-top:8px">
-      <table>
-        <thead><tr><th>Category</th><th class="td-num">Prev</th><th class="td-num">Curr</th><th class="td-num">Total</th><th>Actions</th></tr></thead>
-        <tbody id="table"><tr><td colspan="5" class="empty">No categories yet</td></tr></tbody>
-      </table>
-    </div>
-  </div>
+<h3>Add Category</h3>
 
-  <div class="card">
-    <div class="section-title">Distribution History</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Date</th><th>Category</th><th class="td-num">Qty</th><th>Actions</th></tr></thead>
-        <tbody id="historyTable"><tr><td colspan="4" class="empty">No sales yet</td></tr></tbody>
-      </table>
-    </div>
-  </div>
+<input id="cat" placeholder="Category name">
+<input id="prev" type="number" placeholder="Prev stock">
+<input id="curr" type="number" placeholder="Curr stock">
+
+<button id="saveBtn">Save</button>
+
+
+<h3>Distribute Notebooks</h3>
+
+<select id="sellCat"></select>
+
+<input id="soldQty" type="number" placeholder="Quantity">
+
+<button id="sellBtn">Distribute</button>
+
+
+<h3>Stock Overview</h3>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+<tr>
+<th>Category</th>
+<th>Prev</th>
+<th>Curr</th>
+<th>Total</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+
+</table>
+
 </div>
 
+
+<h3>📜 Distribution History</h3>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+<tr>
+<th>Date</th>
+<th>Category</th>
+<th>Qty</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="historyTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+
 <script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import{getFirestore,collection,addDoc,getDocs,doc,setDoc,deleteDoc,updateDoc}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig={apiKey:"AIzaSyDcQ5RzqmhlpRxl93g7aQg_zJxc6B3uiQQ",authDomain:"notebookmanager-18e85.firebaseapp.com",projectId:"notebookmanager-18e85",storageBucket:"notebookmanager-18e85.firebasestorage.app",messagingSenderId:"305878840961",appId:"1:305878840961:web:7a728ec61a20861d24bf80"};
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-let data={},history=[];
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+doc,
+setDoc,
+deleteDoc,
+updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+apiKey:"AIzaSyDcQ5RzqmhlpRxl93g7aQg_zJxc6B3uiQQ",
+
+authDomain:"notebookmanager-18e85.firebaseapp.com",
+
+projectId:"notebookmanager-18e85",
+
+storageBucket:"notebookmanager-18e85.firebasestorage.app",
+
+messagingSenderId:"305878840961",
+
+appId:"1:305878840961:web:7a728ec61a20861d24bf80"
+
+};
+
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+let data={}
+let history=[]
+
 
 async function load(){
-  const catSnap=await getDocs(collection(db,"categories"));
-  catSnap.forEach(d=>{data[d.id]=d.data()});
-  const histSnap=await getDocs(collection(db,"history"));
-  histSnap.forEach(d=>{history.push({id:d.id,...d.data()})});
-  render();renderHistory();
+
+const catSnap=await getDocs(collection(db,"categories"))
+
+catSnap.forEach(docSnap=>{
+
+data[docSnap.id]=docSnap.data()
+
+})
+
+
+const histSnap=await getDocs(collection(db,"history"))
+
+histSnap.forEach(docSnap=>{
+
+history.push({id:docSnap.id,...docSnap.data()})
+
+})
+
+
+render()
+
+renderHistory()
+
 }
+
+
 
 async function saveCategory(){
-  const cat=document.getElementById("cat").value.trim();
-  const prev=parseInt(document.getElementById("prev").value)||0;
-  const curr=parseInt(document.getElementById("curr").value)||0;
-  if(!cat)return alert("Enter a category name");
-  data[cat]={prev,curr};
-  await setDoc(doc(db,"categories",cat),data[cat]);
-  document.getElementById("cat").value="";
-  document.getElementById("prev").value="";
-  document.getElementById("curr").value="";
-  render();
+
+const cat=catInput.value
+
+const prev=parseInt(prevInput.value)||0
+
+const curr=parseInt(currInput.value)||0
+
+
+if(!cat) return alert("enter category")
+
+
+data[cat]={prev,curr}
+
+
+await setDoc(doc(db,"categories",cat),data[cat])
+
+
+render()
+
 }
+
+
 
 async function sell(){
-  const cat=document.getElementById("sellCat").value;
-  let qty=parseInt(document.getElementById("soldQty").value);
-  if(!qty||!cat)return;
-  let item=data[cat];
-  if(item.prev>=qty){item.prev-=qty;}else{qty-=item.prev;item.prev=0;item.curr-=qty;}
-  await setDoc(doc(db,"categories",cat),item);
-  let ref=await addDoc(collection(db,"history"),{category:cat,quantity:qty,date:new Date().toLocaleString()});
-  history.unshift({id:ref.id,category:cat,quantity:qty,date:new Date().toLocaleString()});
-  document.getElementById("soldQty").value="";
-  render();renderHistory();
+
+const cat=sellSelect.value
+
+let qty=parseInt(soldInput.value)
+
+
+if(!qty) return
+
+
+let item=data[cat]
+
+
+if(item.prev>=qty){
+
+item.prev-=qty
+
+}else{
+
+qty-=item.prev
+
+item.prev=0
+
+item.curr-=qty
+
 }
+
+
+await setDoc(doc(db,"categories",cat),item)
+
+
+let ref=await addDoc(
+
+collection(db,"history"),
+
+{
+
+category:cat,
+
+quantity:qty,
+
+date:new Date().toLocaleString()
+
+}
+
+)
+
+
+history.unshift({
+
+id:ref.id,
+
+category:cat,
+
+quantity:qty,
+
+date:new Date().toLocaleString()
+
+})
+
+
+render()
+
+renderHistory()
+
+}
+
+
 
 async function deleteHistory(id){
-  let entry=history.find(x=>x.id===id);
-  data[entry.category].curr+=entry.quantity;
-  await setDoc(doc(db,"categories",entry.category),data[entry.category]);
-  await deleteDoc(doc(db,"history",id));
-  history=history.filter(x=>x.id!==id);
-  render();renderHistory();
+
+let entry=history.find(x=>x.id===id)
+
+
+data[entry.category].curr+=entry.quantity
+
+
+await setDoc(
+
+doc(db,"categories",entry.category),
+
+data[entry.category]
+
+)
+
+
+await deleteDoc(doc(db,"history",id))
+
+
+history=history.filter(x=>x.id!==id)
+
+
+render()
+
+renderHistory()
+
 }
+
+
 
 async function editHistory(id){
-  let entry=history.find(x=>x.id===id);
-  let newQty=parseInt(prompt("New quantity",entry.quantity));
-  if(!newQty)return;
-  let diff=newQty-entry.quantity;
-  data[entry.category].curr-=diff;
-  await setDoc(doc(db,"categories",entry.category),data[entry.category]);
-  await updateDoc(doc(db,"history",id),{quantity:newQty});
-  entry.quantity=newQty;
-  render();renderHistory();
+
+let entry=history.find(x=>x.id===id)
+
+
+let newQty=parseInt(prompt("new qty",entry.quantity))
+
+
+if(!newQty) return
+
+
+let diff=newQty-entry.quantity
+
+
+data[entry.category].curr-=diff
+
+
+await setDoc(
+
+doc(db,"categories",entry.category),
+
+data[entry.category]
+
+)
+
+
+await updateDoc(
+
+doc(db,"history",id),
+
+{quantity:newQty}
+
+)
+
+
+entry.quantity=newQty
+
+
+render()
+
+renderHistory()
+
 }
+
+
 
 async function deleteCategory(cat){
-  if(!confirm("Delete this category?"))return;
-  await deleteDoc(doc(db,"categories",cat));
-  delete data[cat];
-  render();
+
+if(!confirm("delete category?")) return
+
+
+await deleteDoc(doc(db,"categories",cat))
+
+
+data[cat]=undefined
+
+
+render()
+
 }
+
+
 
 async function editCategory(cat){
-  let newName=prompt("Rename category",cat);
-  if(!newName||newName===cat)return;
-  data[newName]=data[cat];
-  await setDoc(doc(db,"categories",newName),data[newName]);
-  await deleteDoc(doc(db,"categories",cat));
-  for(let h of history){if(h.category===cat){h.category=newName;await updateDoc(doc(db,"history",h.id),{category:newName});}}
-  delete data[cat];
-  render();renderHistory();
+
+let newName=prompt("rename",cat)
+
+
+if(!newName) return
+
+
+data[newName]=data[cat]
+
+
+await setDoc(
+
+doc(db,"categories",newName),
+
+data[newName]
+
+)
+
+
+await deleteDoc(doc(db,"categories",cat))
+
+
+for(let h of history){
+
+if(h.category===cat){
+
+h.category=newName
+
+await updateDoc(doc(db,"history",h.id),{category:newName})
+
 }
+
+}
+
+
+delete data[cat]
+
+
+render()
+
+renderHistory()
+
+}
+
+
 
 function render(){
-  const table=document.getElementById("table");
-  const sel=document.getElementById("sellCat");
-  const cats=Object.keys(data).filter(k=>data[k]);
-  sel.innerHTML="";
-  if(!cats.length){
-    table.innerHTML='<tr><td colspan="5" class="empty">No categories yet</td></tr>';
-    document.getElementById("statCards").style.display="none";
-    return;
-  }
-  let totalPrev=0,totalCurr=0;
-  table.innerHTML=cats.map(cat=>{
-    const d=data[cat];
-    totalPrev+=d.prev;totalCurr+=d.curr;
-    return`<tr>
-      <td><span class="tag tag-green">${cat}</span></td>
-      <td class="td-num">${d.prev}</td>
-      <td class="td-num">${d.curr}</td>
-      <td class="td-num">${d.prev+d.curr}</td>
-      <td><div class="action-wrap">
-        <button class="act-btn" onclick="editCategory('${cat}')">Edit</button>
-        <button class="act-btn del" onclick="deleteCategory('${cat}')">Del</button>
-      </div></td>
-    </tr>`;
-  }).join("");
-  sel.innerHTML=cats.map(c=>`<option>${c}</option>`).join("");
-  document.getElementById("statCards").style.display="grid";
-  document.getElementById("statCats").textContent=cats.length;
-  document.getElementById("statPrev").textContent=totalPrev;
-  document.getElementById("statCurr").textContent=totalCurr;
+
+table.innerHTML=""
+
+sellSelect.innerHTML=""
+
+
+for(let cat in data){
+
+if(!data[cat]) continue
+
+
+let d=data[cat]
+
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${cat}</td>
+
+<td>${d.prev}</td>
+
+<td>${d.curr}</td>
+
+<td>${d.prev+d.curr}</td>
+
+<td>
+
+<button onclick="editCategory('${cat}')">Edit</button>
+
+<button onclick="deleteCategory('${cat}')">Delete</button>
+
+</td>
+
+</tr>`
+
+
+sellSelect.innerHTML+=`<option>${cat}</option>`
+
 }
+
+}
+
+
 
 function renderHistory(){
-  const h=document.getElementById("historyTable");
-  if(!history.length){
-    h.innerHTML='<tr><td colspan="4" class="empty">No sales yet</td></tr>';
-    return;
-  }
-  h.innerHTML=history.map(e=>`<tr>
-    <td style="font-size:12px;color:var(--color-text-secondary)">${e.date}</td>
-    <td>${e.category}</td>
-    <td class="td-num">${e.quantity}</td>
-    <td><div class="action-wrap">
-      <button class="act-btn" onclick="editHistory('${e.id}')">Edit</button>
-      <button class="act-btn del" onclick="deleteHistory('${e.id}')">Del</button>
-    </div></td>
-  </tr>`).join("");
+
+historyTable.innerHTML=""
+
+
+history.forEach(h=>{
+
+historyTable.innerHTML+=`
+
+<tr>
+
+<td>${h.date}</td>
+
+<td>${h.category}</td>
+
+<td>${h.quantity}</td>
+
+<td>
+
+<button onclick="editHistory('${h.id}')">Edit</button>
+
+<button onclick="deleteHistory('${h.id}')">Delete</button>
+
+</td>
+
+</tr>`
+
+})
+
 }
 
-document.getElementById("saveBtn").addEventListener("click",saveCategory);
-document.getElementById("sellBtn").addEventListener("click",sell);
-window.editCategory=editCategory;
-window.deleteCategory=deleteCategory;
-window.editHistory=editHistory;
-window.deleteHistory=deleteHistory;
-load();
+
+
+const catInput=document.getElementById("cat")
+const prevInput=document.getElementById("prev")
+const currInput=document.getElementById("curr")
+const sellSelect=document.getElementById("sellCat")
+const soldInput=document.getElementById("soldQty")
+
+
+document.getElementById("saveBtn").addEventListener("click",saveCategory)
+document.getElementById("sellBtn").addEventListener("click",sell)
+
+
+window.editCategory=editCategory
+window.deleteCategory=deleteCategory
+window.editHistory=editHistory
+window.deleteHistory=deleteHistory
+
+
+load()
+
 </script>
+
+</body>
+</html>
