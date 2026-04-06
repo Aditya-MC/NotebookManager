@@ -242,11 +242,30 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
+/* DOM references */
+
+const catInput=document.getElementById("cat")
+const prevInput=document.getElementById("prev")
+const currInput=document.getElementById("curr")
+const sellSelect=document.getElementById("sellCat")
+const soldInput=document.getElementById("soldQty")
+
+const table=document.getElementById("table")
+const historyTable=document.getElementById("historyTable")
+
+
+/* state */
+
 let data={}
 let history=[]
 
 
+/* LOAD DATA */
+
 async function load(){
+
+data={}
+history=[]
 
 const catSnap=await getDocs(collection(db,"categories"))
 
@@ -267,36 +286,32 @@ history.push({id:docSnap.id,...docSnap.data()})
 
 
 render()
-
 renderHistory()
 
 }
 
 
+/* SAVE CATEGORY */
 
 async function saveCategory(){
 
-const cat=catInput.value
+const cat=catInput.value.trim()
 
 const prev=parseInt(prevInput.value)||0
-
 const curr=parseInt(currInput.value)||0
-
 
 if(!cat) return alert("enter category")
 
-
 data[cat]={prev,curr}
 
-
 await setDoc(doc(db,"categories",cat),data[cat])
-
 
 render()
 
 }
 
 
+/* DISTRIBUTE NOTEBOOKS */
 
 async function sell(){
 
@@ -304,11 +319,31 @@ const cat=sellSelect.value
 
 let qty=parseInt(soldInput.value)
 
-
 if(!qty) return
 
 
+// reload latest category data from firestore
+const catSnap=await getDocs(collection(db,"categories"))
+
+data={}
+
+catSnap.forEach(docSnap=>{
+data[docSnap.id]=docSnap.data()
+})
+
+
 let item=data[cat]
+
+if(!item){
+
+alert("category missing — reload page")
+
+return
+
+}
+
+
+let originalQty=qty
 
 
 if(item.prev>=qty){
@@ -318,9 +353,7 @@ item.prev-=qty
 }else{
 
 qty-=item.prev
-
 item.prev=0
-
 item.curr-=qty
 
 }
@@ -336,9 +369,7 @@ collection(db,"history"),
 {
 
 category:cat,
-
-quantity:qty,
-
+quantity:originalQty,
 date:new Date().toLocaleString()
 
 }
@@ -349,38 +380,38 @@ date:new Date().toLocaleString()
 history.unshift({
 
 id:ref.id,
-
 category:cat,
-
-quantity:qty,
-
+quantity:originalQty,
 date:new Date().toLocaleString()
 
 })
 
 
 render()
-
 renderHistory()
 
 }
 
 
+/* DELETE HISTORY */
 
 async function deleteHistory(id){
 
 let entry=history.find(x=>x.id===id)
 
+if(!entry) return
 
-data[entry.category].curr+=entry.quantity
+let item=data[entry.category]
+
+if(!item) return
+
+
+item.curr+=entry.quantity
 
 
 await setDoc(
-
 doc(db,"categories",entry.category),
-
-data[entry.category]
-
+item
 )
 
 
@@ -391,20 +422,20 @@ history=history.filter(x=>x.id!==id)
 
 
 render()
-
 renderHistory()
 
 }
 
 
+/* EDIT HISTORY */
 
 async function editHistory(id){
 
 let entry=history.find(x=>x.id===id)
 
+if(!entry) return
 
 let newQty=parseInt(prompt("new qty",entry.quantity))
-
 
 if(!newQty) return
 
@@ -412,24 +443,23 @@ if(!newQty) return
 let diff=newQty-entry.quantity
 
 
-data[entry.category].curr-=diff
+let item=data[entry.category]
+
+if(!item) return
+
+
+item.curr-=diff
 
 
 await setDoc(
-
 doc(db,"categories",entry.category),
-
-data[entry.category]
-
+item
 )
 
 
 await updateDoc(
-
 doc(db,"history",id),
-
 {quantity:newQty}
-
 )
 
 
@@ -437,49 +467,39 @@ entry.quantity=newQty
 
 
 render()
-
 renderHistory()
 
 }
 
-
+/* DELETE CATEGORY */
 
 async function deleteCategory(cat){
 
 if(!confirm("delete category?")) return
 
-
 await deleteDoc(doc(db,"categories",cat))
 
-
-data[cat]=undefined
-
+delete data[cat]
 
 render()
 
 }
 
 
+/* EDIT CATEGORY */
 
 async function editCategory(cat){
 
 let newName=prompt("rename",cat)
 
-
 if(!newName) return
-
 
 data[newName]=data[cat]
 
-
 await setDoc(
-
 doc(db,"categories",newName),
-
 data[newName]
-
 )
-
 
 await deleteDoc(doc(db,"categories",cat))
 
@@ -490,7 +510,10 @@ if(h.category===cat){
 
 h.category=newName
 
-await updateDoc(doc(db,"history",h.id),{category:newName})
+await updateDoc(
+doc(db,"history",h.id),
+{category:newName}
+)
 
 }
 
@@ -499,14 +522,13 @@ await updateDoc(doc(db,"history",h.id),{category:newName})
 
 delete data[cat]
 
-
 render()
-
 renderHistory()
 
 }
 
 
+/* RENDER CATEGORY TABLE */
 
 function render(){
 
@@ -514,14 +536,11 @@ table.innerHTML=""
 
 sellSelect.innerHTML=""
 
-
-for(let cat in data){
-
-if(!data[cat]) continue
-
+Object.keys(data).forEach(cat=>{
 
 let d=data[cat]
 
+if(!d) return
 
 table.innerHTML+=`
 
@@ -545,19 +564,18 @@ table.innerHTML+=`
 
 </tr>`
 
-
 sellSelect.innerHTML+=`<option>${cat}</option>`
 
-}
+})
 
 }
 
 
+/* RENDER HISTORY TABLE */
 
 function renderHistory(){
 
 historyTable.innerHTML=""
-
 
 history.forEach(h=>{
 
@@ -586,23 +604,24 @@ historyTable.innerHTML+=`
 }
 
 
+/* BUTTON EVENTS */
 
-const catInput=document.getElementById("cat")
-const prevInput=document.getElementById("prev")
-const currInput=document.getElementById("curr")
-const sellSelect=document.getElementById("sellCat")
-const soldInput=document.getElementById("soldQty")
+document.getElementById("saveBtn")
+.addEventListener("click",saveCategory)
+
+document.getElementById("sellBtn")
+.addEventListener("click",sell)
 
 
-document.getElementById("saveBtn").addEventListener("click",saveCategory)
-document.getElementById("sellBtn").addEventListener("click",sell)
-
+/* expose functions for table buttons */
 
 window.editCategory=editCategory
 window.deleteCategory=deleteCategory
 window.editHistory=editHistory
 window.deleteHistory=deleteHistory
 
+
+/* INIT */
 
 load()
 
