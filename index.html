@@ -333,19 +333,26 @@ renderHistory()
 
 async function saveCategory(){
 
-const cat=catInput.value.trim()
+const cat = catInput.value.trim()
 
-const prev=parseInt(prevInput.value)||0
-const curr=parseInt(currInput.value)||0
+const prev = parseInt(prevInput.value) || 0
+const curr = parseInt(currInput.value) || 0
 
 if(!cat) return alert("enter category")
 
-data[cat]={prev,curr}
+await setDoc(doc(db,"categories",cat),{
+prev,
+curr
+})
 
-await setDoc(doc(db,"categories",cat),data[cat])
+catInput.value=""
+prevInput.value=""
+currInput.value=""
 
-render()
+await load()
+
 closeModal()
+
 }
 
 
